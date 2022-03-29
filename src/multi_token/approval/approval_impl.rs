@@ -19,7 +19,7 @@ pub trait MultiTokenReceiver {
 }
 
 impl MultiTokenApproval for MultiToken {
-    fn approve(
+    fn mt_approve(
         &mut self,
         account_id: AccountId,
         token_id: TokenId,
@@ -76,7 +76,7 @@ impl MultiTokenApproval for MultiToken {
         })
     }
 
-    fn revoke(&mut self, token: TokenId, account: AccountId) {
+    fn mt_revoke(&mut self, token: TokenId, account: AccountId) {
         assert_one_yocto();
         
         // It's impossible that token does not have owner, so i'll just unwrap the value
@@ -96,11 +96,11 @@ impl MultiTokenApproval for MultiToken {
         }
     }
 
-    fn revoke_all(&mut self, token: TokenId) {
+    fn mt_revoke_all(&mut self, token: TokenId) {
         todo!()
     }
 
-    fn is_approved(
+    fn mt_is_approved(
         &self,
         token: TokenId,
         approved_account: AccountId,

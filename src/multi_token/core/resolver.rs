@@ -35,7 +35,7 @@ pub trait MultiTokenResolver {
     /// but `receiver_id` only uses 80, `on_transfer` will resolve with `["20"]`, and `resolve_transfer`
     /// will return `[80]`.
 
-    fn resolve_transfer(
+    fn mt_resolve_transfer(
         &mut self,
         sender_id: AccountId,
         receiver: AccountId,

@@ -16,7 +16,7 @@ pub trait MultiTokenEnumeration {
     ///
     /// returns: List of [Token]s.
     ///
-    fn tokens(&self, from_index: Option<u64>, limit: u64) -> Vec<Token>;
+    fn mt_tokens(&self, from_index: Option<u64>, limit: u64) -> Vec<Token>;
 
     /// Get list of all tokens by a given account
     ///
@@ -27,7 +27,7 @@ pub trait MultiTokenEnumeration {
     ///
     /// returns: List of [Token]s owner by user
     ///
-    fn token_by_owner(&self, account_id: AccountId, from_index: Option<u64>, limit: u64) -> Vec<Token>;
+    fn mt_tokens_for_owner(&self, account_id: AccountId, from_index: Option<u64>, limit: u64) -> Vec<Token>;
 }
 
 /// The contract must implement the following view methods if using metadata extension
@@ -40,5 +40,5 @@ pub trait MultiTokenEnumerationMetadata {
     /// * `limit`: the maximum number of tokens to return
     ///
     /// Returns an array of `MTBaseTokenMetadata` objects, as described in the Metadata standard, and an empty array if there are no tokens
-    fn token_metadata_all(&self, from_index: Option<u64>, limit: u64) -> Vec<MtContractMetadata>;
+    fn mt_tokens_base_metadata_all(&self, from_index: Option<u64>, limit: u64) -> Vec<MtContractMetadata>;
 }

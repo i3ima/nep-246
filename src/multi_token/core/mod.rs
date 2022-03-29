@@ -29,7 +29,7 @@ pub trait MultiTokenCore {
     ///
     /// returns: ()
     ///
-    fn transfer(
+    fn mt_transfer(
         &mut self,
         receiver_id: AccountId,
         token_id: TokenId,
@@ -52,7 +52,7 @@ pub trait MultiTokenCore {
     ///
     /// returns: PromiseOrValue<bool>
     ///
-    fn transfer_call(
+    fn mt_transfer_call(
         &mut self,
         receiver_id: AccountId,
         token_id: TokenId,
@@ -61,7 +61,7 @@ pub trait MultiTokenCore {
         msg: String,
     ) -> PromiseOrValue<bool>;
 
-    fn approval_for_all(&mut self, owner: AccountId, approved: bool);
+    fn mt_approval_for_all(&mut self, owner: AccountId, approved: bool);
 
     /// Get balance of user in specified tokens
     ///
@@ -69,9 +69,9 @@ pub trait MultiTokenCore {
     /// 
     /// * `owner`: Account to check
     /// # `id`: Vector of token IDs
-    fn balance_of(&self, owner: AccountId, id: Vec<TokenId>) -> Vec<u128>;
+    fn mt_balance_of(&self, owner: AccountId, id: Vec<TokenId>) -> Vec<u128>;
 
 
-    /// Get all possible info about token
-    fn token(&self, token_id: TokenId) -> Option<Token>;
+    /// Get all info about token
+    fn mt_token(&self, token_id: TokenId) -> Option<Token>;
 }

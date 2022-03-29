@@ -2,7 +2,7 @@
 #![allow(clippy::ptr_arg)]
 #![allow(unused_variables)]
 
-//! ERC-1155 Implementation
+//! NEP-246 Implementation
 //!
 //! NOTES:
 //! * All amounts, balances and allowance are limited by U128 (max value 2**128 - 1).

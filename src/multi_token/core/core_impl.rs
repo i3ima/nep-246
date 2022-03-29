@@ -4,7 +4,7 @@ use crate::multi_token::metadata::TokenMetadata;
 use crate::multi_token::token::{Approval, Token, TokenId};
 use crate::multi_token::utils::refund_deposit_to_account;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::collections::{LookupMap, TreeMap, UnorderedMap, UnorderedSet};
+use near_sdk::collections::{LookupMap, TreeMap, UnorderedMap, UnorderedSet, Vector};
 use near_sdk::json_types::U128;
 use near_sdk::{
     assert_one_yocto, env, ext_contract, log, require, AccountId, Balance, BorshStorageKey,
@@ -404,10 +404,12 @@ impl MultiToken {
         }
         .emit()
     }
+
+
 }
 
 impl MultiTokenCore for MultiToken {
-    fn transfer(
+    fn mt_transfer(
         &mut self,
         receiver_id: AccountId,
         token_id: TokenId,
@@ -420,7 +422,7 @@ impl MultiTokenCore for MultiToken {
         self.internal_transfer(&sender_id, &receiver_id, &token_id, approval, amount);
     }
 
-    fn transfer_call(
+    fn mt_transfer_call(
         &mut self,
         receiver_id: AccountId,
         token_id: TokenId,
@@ -460,11 +462,11 @@ impl MultiTokenCore for MultiToken {
         .into()
     }
 
-    fn approval_for_all(&mut self, owner: AccountId, approved: bool) {
+    fn mt_approval_for_all(&mut self, owner: AccountId, approved: bool) {
         todo!()
     }
 
-    fn balance_of(&self, owner: AccountId, id: Vec<TokenId>) -> Vec<u128> {
+    fn mt_balance_of(&self, owner: AccountId, id: Vec<TokenId>) -> Vec<u128> {
         self.balances_per_token
             .iter()
             .filter(|(token_id, _)| id.contains(token_id))
@@ -476,7 +478,7 @@ impl MultiTokenCore for MultiToken {
             .collect()
     }
 
-    fn token(&self, token_id: TokenId) -> Option<Token> {
+    fn mt_token(&self, token_id: TokenId) -> Option<Token> {
         let metadata = if let Some(metadata_by_id) = &self.token_metadata_by_id {
             metadata_by_id.get(&token_id)
         } else {
@@ -550,7 +552,7 @@ impl MultiToken {
 }
 
 impl MultiTokenResolver for MultiToken {
-    fn resolve_transfer(
+    fn mt_resolve_transfer(
         &mut self,
         sender_id: AccountId,
         receiver: AccountId,

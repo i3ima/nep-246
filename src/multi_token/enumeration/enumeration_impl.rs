@@ -20,7 +20,7 @@ impl MultiToken {
 }
 
 impl MultiTokenEnumeration for MultiToken {
-    fn tokens(&self, from_index: Option<u64>, limit: u64) -> Vec<Token> {
+    fn mt_tokens(&self, from_index: Option<u64>, limit: u64) -> Vec<Token> {
         let from_index = from_index.unwrap_or(0);
 
         require!(self.owner_by_id.len() > from_index, "Out of bounds");
@@ -35,7 +35,7 @@ impl MultiTokenEnumeration for MultiToken {
         .collect()
     }
 
-    fn token_by_owner(&self, account_id: AccountId, from_index: Option<u64>, limit: u64) -> Vec<Token> {
+    fn mt_tokens_for_owner(&self, account_id: AccountId, from_index: Option<u64>, limit: u64) -> Vec<Token> {
         let tokens_per_owner = self.tokens_per_owner.as_ref().expect("Could not find field");
 
         let token_set = if let Some(set) = tokens_per_owner.get(&account_id) {

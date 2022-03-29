@@ -11,7 +11,7 @@ use near_sdk::{AccountId, Balance, Promise};
 /// Specs - https://github.com/shipsgold/NEPs/blob/master/specs/Standards/MultiToken/ApprovalManagement.md
 pub trait MultiTokenApproval {
     /// Add an approved account for a specific set of tokens
-    fn approve(
+    fn mt_approve(
         &mut self,
         account_id: AccountId,
         token_id: TokenId,
@@ -19,14 +19,14 @@ pub trait MultiTokenApproval {
         msg: Option<String>
     ) -> Option<Promise>;
 
-    /// Revoke an approve for specific token
-    fn revoke(&mut self, token: TokenId, account: AccountId);
+    /// Revoke an approve for specific account
+    fn mt_revoke(&mut self, token: TokenId, account: AccountId);
 
     /// Revoke all approves for a token
-    fn revoke_all(&mut self, token: TokenId);
+    fn mt_revoke_all(&mut self, token: TokenId);
 
-    /// Check if account have access to transfer tokens
-    fn is_approved(
+    /// Check if account has access to transfer tokens
+    fn mt_is_approved(
         &self,
         token: TokenId,
         approved_account: AccountId,
