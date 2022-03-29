@@ -1,5 +1,5 @@
 use crate::multi_token::core::{MultiTokenCore, MultiTokenResolver};
-use crate::multi_token::events::{MtMint, MtTransfer};
+use crate::multi_token::events::{MtBurn, MtMint, MtTransfer};
 use crate::multi_token::metadata::TokenMetadata;
 use crate::multi_token::token::{Approval, Token, TokenId};
 use crate::multi_token::utils::refund_deposit_to_account;
@@ -405,6 +405,17 @@ impl MultiToken {
         .emit()
     }
 
+    // TODO: Use this for `mt_burn()`
+    fn emit_burn(owner_id: &AccountId, token_id: &TokenId, amount: &Balance, memo: Option<String>) {
+        MtBurn {
+            owner_id,
+            authorized_id: Some(owner_id),
+            token_ids: &[token_id],
+            amounts: &[&amount.to_string()],
+            memo: memo.as_deref(),
+        }
+            .emit()
+    }
 
 }
 
