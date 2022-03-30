@@ -19,7 +19,7 @@ const NO_DEPOSIT: Balance = 0;
 
 #[ext_contract(ext_self)]
 trait MtResolver {
-    fn resolve_transfer(
+    fn mt_resolve_transfer(
         &mut self,
         sender_id: AccountId,
         receiver: AccountId,
@@ -30,7 +30,7 @@ trait MtResolver {
 
 #[ext_contract(ext_receiver)]
 pub trait MultiTokenReceiver {
-    fn on_transfer(
+    fn mt_on_transfer(
         &mut self,
         sender_id: AccountId,
         previous_owner_id: AccountId,
@@ -433,6 +433,10 @@ impl MultiTokenCore for MultiToken {
         self.internal_transfer(&sender_id, &receiver_id, &token_id, approval, amount);
     }
 
+    fn batch_transfer(&mut self, receiver_id: AccountId, token_ids: Vec<TokenId>, amounts: Vec<Balance>, approvals: Option<Vec<u64>>) {
+        todo!()
+    }
+
     fn mt_transfer_call(
         &mut self,
         receiver_id: AccountId,
@@ -451,17 +455,17 @@ impl MultiTokenCore for MultiToken {
         let (old_owner, old_approvals) =
             self.internal_transfer(&sender_id, &receiver_id, &token_id, approval_id, amount);
 
-        ext_receiver::on_transfer(
+        ext_receiver::mt_on_transfer(
             sender_id,
-            old_owner.clone(),
-            token_id.clone(),
-            amount,
+            vec![old_owner.clone()],
+            vec![token_id.clone()],
+            vec![amount],
             msg,
             receiver_id.clone(),
             NO_DEPOSIT,
             env::prepaid_gas() - GAS_FOR_MT_TRANSFER_CALL,
         )
-        .then(ext_self::resolve_transfer(
+        .then(ext_self::mt_resolve_transfer(
             old_owner,
             receiver_id,
             token_id,
@@ -471,6 +475,10 @@ impl MultiTokenCore for MultiToken {
             GAS_FOR_RESOLVE_TRANSFER,
         ))
         .into()
+    }
+
+    fn mt_batch_transfer_call(&mut self, receiver_id: AccountId, token_ids: TokenId, amounts: Balance, approval_ids: Option<u64>, msg: String) -> PromiseOrValue<bool> {
+        todo!()
     }
 
     fn mt_approval_for_all(&mut self, owner: AccountId, approved: bool) {

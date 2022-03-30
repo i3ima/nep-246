@@ -15,7 +15,7 @@ const NO_DEPOSIT: Balance = 0;
 
 #[ext_contract(ext_approval_receiver)]
 pub trait MultiTokenReceiver {
-    fn on_approve(&mut self, tokens: Vec<TokenId>, owner_id: AccountId, approval_id: u64, msg: String);
+    fn mt_on_approve(&mut self, tokens: Vec<TokenId>, owner_id: AccountId, approval_id: u64, msg: String);
 }
 
 impl MultiTokenApproval for MultiToken {
@@ -64,7 +64,7 @@ impl MultiTokenApproval for MultiToken {
         current_next_id += 1;
 
         msg.map(|msg| {
-            ext_approval_receiver::on_approve(
+            ext_approval_receiver::mt_on_approve(
                 vec![token_id],
                 owner_id,
                 current_next_id,

@@ -9,18 +9,29 @@ macro_rules! impl_multi_token_core {
         #[near_bindgen]
         impl MultiTokenCore for $contract {
             #[payable]
-            fn transfer(
+            fn mt_transfer(
                 &mut self,
                 receiver_id: AccountId,
                 token_id: TokenId,
                 amount: Balance,
                 approval: Option<u64>,
             ) {
-                self.$token.transfer(receiver_id, token_id, amount, approval)
+                self.$token.mt_transfer(receiver_id, token_id, amount, approval)
             }
 
             #[payable]
-            fn transfer_call(
+            fn mt_batch_transfer(
+                &mut self,
+                receiver_id: AccountId,
+                token_id: TokenId,
+                amount: Balance,
+                approval: Option<u64>,
+            ) {
+                self.$token.mt_batch_transfer(receiver_id, token_id, amount, approval)
+            }
+
+            #[payable]
+            fn mt_batch_transfer_call(
                 &mut self,
                 receiver_id: AccountId,
                 token_id: TokenId,
@@ -28,18 +39,30 @@ macro_rules! impl_multi_token_core {
                 approval_id: Option<u64>,
                 msg: String,
             ) -> PromiseOrValue<bool> {
-                self.$token.transfer_call(receiver_id, token_id, amount, approval_id, msg)
+                self.$token.mt_batch_transfer_call(receiver_id, token_id, amount, approval_id, msg)
             }
 
-            fn token(&self, token_id: TokenId) -> Option<Token> {
+            #[payable]
+            fn mt_transfer_call(
+                &mut self,
+                receiver_id: AccountId,
+                token_id: TokenId,
+                amount: Balance,
+                approval_id: Option<u64>,
+                msg: String,
+            ) -> PromiseOrValue<bool> {
+                self.$token.mt_transfer_call(receiver_id, token_id, amount, approval_id, msg)
+            }
+
+            fn mt_token(&self, token_id: TokenId) -> Option<Token> {
                 self.$token.token(token_id)
             }
             
-            fn balance_of(&self, owner: AccountId, id: Vec<TokenId>) -> Vec<u128> { 
+            fn mt_balance_of(&self, owner: AccountId, id: Vec<TokenId>) -> Vec<u128> {
                 self.$token.balance_of(owner, id)
              }
             
-            fn approval_for_all(&mut self, owner_id: AccountId, approved: bool) { todo!() }
+            fn mt_approval_for_all(&mut self, owner_id: AccountId, approved: bool) { todo!() }
         }
 
 
@@ -47,14 +70,14 @@ macro_rules! impl_multi_token_core {
         #[near_bindgen]
         impl MultiTokenResolver for $contract {
             #[private]
-            fn resolve_transfer(
+            fn mt_resolve_transfer(
                 &mut self,
                 sender_id: AccountId,
                 receiver_id: AccountId,
                 token_id: TokenId,
                 amount: U128
             ) -> U128 {
-                self.$token.resolve_transfer(
+                self.$token.mt_resolve_transfer(
                     sender_id,
                     receiver_id,
                     token_id,
@@ -75,34 +98,34 @@ macro_rules! impl_multi_token_approval {
         #[near_bindgen]
         impl MultiTokenApproval for $contract {
             #[payable]
-            fn approve(
+            fn mt_approve(
                 &mut self,
                 account_id: AccountId,
                 token_id: TokenId,
                 amount: Balance,
                 msg: Option<String>,
             ) -> Option<Promise> {
-                self.$token.approve(account_id, token_id, amount, msg)
+                self.$token.mt_approve(account_id, token_id, amount, msg)
             }
 
             #[payable]
-            fn revoke(&mut self, token_id: TokenId, account_id: AccountId) {
-                self.$token.revoke(token_id, account_id)
+            fn mt_revoke(&mut self, token_id: TokenId, account_id: AccountId) {
+                self.$token.mt_revoke(token_id, account_id)
             }
 
             #[payable]
-            fn revoke_all(&mut self, token_id: TokenId) {
-                self.$token.revoke_all(token_id)
+            fn mt_revoke_all(&mut self, token_id: TokenId) {
+                self.$token.mt_revoke_all(token_id)
             }
 
-            fn is_approved(
+            fn mt_is_approved(
                 &self,
                 token_id: TokenId,
                 approved_account_id: AccountId,
                 amount: Balance,
                 approval: Option<u64>,
             ) -> bool {
-                self.$token.is_approved(token_id, approved_account_id, amount, approval)
+                self.$token.mt_is_approved(token_id, approved_account_id, amount, approval)
             }
         }
     };
@@ -117,12 +140,12 @@ macro_rules! impl_multi_token_enumeration {
 
         #[near_bindgen]
         impl MultiTokenEnumeration for $contract {
-            fn tokens(&self, from_index: Option<u64>, limit: u64) -> Vec<Token> {
-                self.$token.tokens(from_index, limit)
+            fn mt_tokens(&self, from_index: Option<u64>, limit: u64) -> Vec<Token> {
+                self.$token.mt_tokens(from_index, limit)
             }
 
-            fn token_by_owner(&self, account_id: AccountId, from_index: Option<u64>, limit: u64) -> Vec<Token> {
-                self.$token.token_by_owner(account_id, from_index, limit)
+            fn mt_tokens_for_owner(&self, account_id: AccountId, from_index: Option<u64>, limit: u64) -> Vec<Token> {
+                self.$token.mt_tokens_for_owner(account_id, from_index, limit)
             }
         }
     };
