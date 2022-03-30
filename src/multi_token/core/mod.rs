@@ -53,12 +53,12 @@ pub trait MultiTokenCore {
     ///
     /// returns: ()
     ///
-    fn batch_transfer(
+    fn mt_batch_transfer(
         &mut self,
         receiver_id: AccountId,
         token_ids: Vec<TokenId>,
         amounts: Vec<Balance>,
-        approvals: Option<Vec<u64>>);
+        approvals: Vec<Option<u64>>);
 
 
     /// Transfer MT and call a method on receiver contract. A successful
@@ -114,11 +114,10 @@ pub trait MultiTokenCore {
         receiver_id: AccountId,
         token_ids: TokenId,
         amounts: Balance,
-        approval_ids: Option<u64>,
+        approval_ids: Vec<Option<u64>>,
         msg: String,
     ) -> PromiseOrValue<bool>;
 
-    
 
     fn mt_approval_for_all(&mut self, owner: AccountId, approved: bool);
 

@@ -23,23 +23,23 @@ macro_rules! impl_multi_token_core {
             fn mt_batch_transfer(
                 &mut self,
                 receiver_id: AccountId,
-                token_id: TokenId,
-                amount: Balance,
-                approval: Option<u64>,
+                token_ids: Vec<TokenId>,
+                amounts: Vec<Balance>,
+                approval: Vec<Option<u64>>,
             ) {
-                self.$token.mt_batch_transfer(receiver_id, token_id, amount, approval)
+                self.$token.mt_batch_transfer(receiver_id, token_ids, amounts, approval)
             }
 
             #[payable]
             fn mt_batch_transfer_call(
                 &mut self,
                 receiver_id: AccountId,
-                token_id: TokenId,
-                amount: Balance,
-                approval_id: Option<u64>,
+                token_ids: TokenId,
+                amounts: Balance,
+                approval_ids: Vec<Option<u64>>,
                 msg: String,
             ) -> PromiseOrValue<bool> {
-                self.$token.mt_batch_transfer_call(receiver_id, token_id, amount, approval_id, msg)
+                self.$token.mt_batch_transfer_call(receiver_id, token_ids, amounts, approval_ids, msg)
             }
 
             #[payable]
@@ -55,11 +55,11 @@ macro_rules! impl_multi_token_core {
             }
 
             fn mt_token(&self, token_id: TokenId) -> Option<Token> {
-                self.$token.token(token_id)
+                self.$token.mt_token(token_id)
             }
             
             fn mt_balance_of(&self, owner: AccountId, id: Vec<TokenId>) -> Vec<u128> {
-                self.$token.balance_of(owner, id)
+                self.$token.mt_balance_of(owner, id)
              }
             
             fn mt_approval_for_all(&mut self, owner_id: AccountId, approved: bool) { todo!() }

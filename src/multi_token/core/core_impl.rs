@@ -33,10 +33,10 @@ pub trait MultiTokenReceiver {
     fn mt_on_transfer(
         &mut self,
         sender_id: AccountId,
-        previous_owner_id: AccountId,
-        token_ids: TokenId,
-        amounts: Balance,
-        msg: String,
+        previous_owner_id: Vec<AccountId>,
+        token_ids: Vec<TokenId>,
+        amounts: Vec<Balance>,
+        msg: String
     ) -> PromiseOrValue<Balance>;
 }
 
@@ -104,11 +104,11 @@ impl MultiToken {
         enumeration_prefix: Option<S>,
         approval_prefix: Option<T>,
     ) -> Self
-    where
-        Q: IntoStorageKey,
-        R: IntoStorageKey,
-        S: IntoStorageKey,
-        T: IntoStorageKey,
+        where
+            Q: IntoStorageKey,
+            R: IntoStorageKey,
+            S: IntoStorageKey,
+            T: IntoStorageKey,
     {
         let (approvals_by_id, next_approval_id_by_id) = if let Some(prefix) = approval_prefix {
             let prefix: Vec<u8> = prefix.into_storage_key();
@@ -392,7 +392,7 @@ impl MultiToken {
             authorized_id: sender_id.filter(|sender_id| *sender_id == owner_id),
             memo: memo.as_deref(),
         }
-        .emit();
+            .emit();
     }
 
     fn emit_mint(owner_id: &AccountId, token_id: &TokenId, amount: &Balance, memo: Option<String>) {
@@ -402,7 +402,7 @@ impl MultiToken {
             amounts: &[&amount.to_string()],
             memo: memo.as_deref(),
         }
-        .emit()
+            .emit()
     }
 
     // TODO: Use this for `mt_burn()`
@@ -416,7 +416,6 @@ impl MultiToken {
         }
             .emit()
     }
-
 }
 
 impl MultiTokenCore for MultiToken {
@@ -433,8 +432,16 @@ impl MultiTokenCore for MultiToken {
         self.internal_transfer(&sender_id, &receiver_id, &token_id, approval, amount);
     }
 
-    fn batch_transfer(&mut self, receiver_id: AccountId, token_ids: Vec<TokenId>, amounts: Vec<Balance>, approvals: Option<Vec<u64>>) {
-        todo!()
+    fn mt_batch_transfer(&mut self, receiver_id: AccountId, token_ids: Vec<TokenId>, amounts: Vec<Balance>, approvals: Vec<Option<u64>>) {
+        assert_one_yocto();
+        let sender = env::predecessor_account_id();
+        env::log_str(format!("Prdecessror {}", sender).as_str());
+
+        for (idx, token) in token_ids.iter().enumerate() {
+            let approval = approvals.get(idx).unwrap();
+            let amount = amounts.get(idx).unwrap();
+            self.internal_transfer(&sender, &receiver_id, token, approval.clone(), amount.clone());
+        }
     }
 
     fn mt_transfer_call(
@@ -446,6 +453,7 @@ impl MultiTokenCore for MultiToken {
         msg: String,
     ) -> PromiseOrValue<bool> {
         assert_one_yocto();
+
         require!(
             env::prepaid_gas() > GAS_FOR_MT_TRANSFER_CALL + GAS_FOR_RESOLVE_TRANSFER,
             "GAS!GAS!GAS! I gonna to step on the gas"
@@ -465,19 +473,19 @@ impl MultiTokenCore for MultiToken {
             NO_DEPOSIT,
             env::prepaid_gas() - GAS_FOR_MT_TRANSFER_CALL,
         )
-        .then(ext_self::mt_resolve_transfer(
-            old_owner,
-            receiver_id,
-            token_id,
-            old_approvals,
-            env::current_account_id(),
-            NO_DEPOSIT,
-            GAS_FOR_RESOLVE_TRANSFER,
-        ))
-        .into()
+            .then(ext_self::mt_resolve_transfer(
+                old_owner,
+                receiver_id,
+                token_id,
+                old_approvals,
+                env::current_account_id(),
+                NO_DEPOSIT,
+                GAS_FOR_RESOLVE_TRANSFER,
+            ))
+            .into()
     }
 
-    fn mt_batch_transfer_call(&mut self, receiver_id: AccountId, token_ids: TokenId, amounts: Balance, approval_ids: Option<u64>, msg: String) -> PromiseOrValue<bool> {
+    fn mt_batch_transfer_call(&mut self, receiver_id: AccountId, token_ids: TokenId, amounts: Balance, approval_ids: Vec<Option<u64>>, msg: String) -> PromiseOrValue<bool> {
         todo!()
     }
 
