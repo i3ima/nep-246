@@ -1,4 +1,5 @@
-use crate::multi_token::token::TokenId;
+use std::collections::HashMap;
+use crate::multi_token::token::{Approval, TokenId};
 use near_sdk::json_types::U128;
 use near_sdk::AccountId;
 
@@ -39,7 +40,7 @@ pub trait MultiTokenResolver {
         &mut self,
         sender_id: AccountId,
         receiver: AccountId,
-        token_id: TokenId,
-        amount: U128,
-    ) -> U128;
+        token_ids: Vec<TokenId>,
+        approvals: Option<HashMap<AccountId, Approval>>
+    ) -> Vec<U128>;
 }

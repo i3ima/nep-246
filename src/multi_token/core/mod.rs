@@ -112,8 +112,8 @@ pub trait MultiTokenCore {
     fn mt_batch_transfer_call(
         &mut self,
         receiver_id: AccountId,
-        token_ids: TokenId,
-        amounts: Balance,
+        token_ids: Vec<TokenId>,
+        amounts: Vec<Balance>,
         approval_ids: Vec<Option<u64>>,
         msg: String,
     ) -> PromiseOrValue<bool>;

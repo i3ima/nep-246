@@ -8,8 +8,8 @@
 
 TODO:
 
-* [ ] mt_batch_transfer_call
-* [ ] Create tests
+* [X] mt_batch_transfer_call
+* [ ] Write tests
 * [ ] MultiToken Burn Method
 * [X] Enumeration extension
 * [X] Fix some types to follow NEP-246 standard
