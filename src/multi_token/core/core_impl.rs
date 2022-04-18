@@ -4,7 +4,7 @@ use crate::multi_token::metadata::TokenMetadata;
 use crate::multi_token::token::{Approval, Token, TokenId};
 use crate::multi_token::utils::refund_deposit_to_account;
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
-use near_sdk::collections::{LookupMap, TreeMap, UnorderedMap, UnorderedSet, Vector};
+use near_sdk::collections::{LookupMap, TreeMap, UnorderedMap, UnorderedSet};
 use near_sdk::json_types::U128;
 use near_sdk::{
     assert_one_yocto, env, ext_contract, log, require, AccountId, Balance, BorshStorageKey,
@@ -276,7 +276,7 @@ impl MultiToken {
         approval_ids: Vec<Option<u64>>,
         amounts: Vec<Balance>,
     ) -> Vec<(AccountId, Option<HashMap<AccountId, Approval>>)> {
-        token_ids.into_iter().enumerate().map(|(idx, token)| {
+        token_ids.iter().enumerate().map(|(idx, token)| {
             let amount: Balance = amounts[idx];
             let approval = approval_ids[idx];
             self.internal_transfer(sender_id, receiver_id, token, approval, amount)

@@ -1,7 +1,6 @@
-use std::collections::HashMap;
-use crate::multi_token::token::{Approval, TokenId};
+use crate::multi_token::token::TokenId;
 use near_sdk::json_types::U128;
-use near_sdk::{AccountId, Balance};
+use near_sdk::AccountId;
 use crate::multi_token::core::ApprovalId;
 
 //// `resolve_transfer` will be called after `on_transfer`

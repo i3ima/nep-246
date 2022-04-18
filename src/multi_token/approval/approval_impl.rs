@@ -67,7 +67,7 @@ impl MultiToken {
         env::log_str(format!("Updated approvals by id: {:?}", old_approval_id).as_str());
 
         let used_storage =
-            if old_approval_id.is_none() { bytes_for_approved_account_id(&account_id) } else { 0 };
+            if old_approval_id.is_none() { bytes_for_approved_account_id(account_id) } else { 0 };
 
         refund_deposit(used_storage);
 
@@ -116,8 +116,7 @@ impl MultiTokenApproval for MultiToken {
         ).collect();
 
         // Check if msg present and then call `mt_on_approve`
-        msg.and_then(|msg| {
-            Some(ext_approval_receiver::mt_on_approve(
+        msg.map(|msg| ext_approval_receiver::mt_on_approve(
                 token_ids,
                 amounts,
                 account_id.clone(),
@@ -127,7 +126,6 @@ impl MultiTokenApproval for MultiToken {
                 NO_DEPOSIT,
                 env::prepaid_gas() - GAS_FOR_MT_TRANSFER_CALL,
             ))
-        })
     }
 
     fn mt_revoke(&mut self, token_ids: Vec<TokenId>, account_id: AccountId) {
@@ -168,7 +166,7 @@ impl MultiTokenApproval for MultiToken {
                         false
                     }
                 }
-                None => {return false}
+                None => false
             }
         }).collect();
 
