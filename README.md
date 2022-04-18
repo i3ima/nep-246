@@ -11,5 +11,6 @@ TODO:
 * [X] mt_batch_transfer_call
 * [ ] Write tests
 * [ ] MultiToken Burn Method
+* [ ] Write & update docs, comment code
 * [X] Enumeration extension
 * [X] Fix some types to follow NEP-246 standard

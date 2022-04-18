@@ -7,12 +7,14 @@ mod receiver;
 mod resolver;
 
 pub use self::core_impl::*;
-
 pub use self::receiver::*;
 pub use self::resolver::*;
 
+pub type ApprovalId = u64;
+
 use crate::multi_token::token::TokenId;
 use near_sdk::{AccountId, Balance, PromiseOrValue};
+use near_sdk::json_types::U128;
 
 use super::token::Token;
 
@@ -113,7 +115,7 @@ pub trait MultiTokenCore {
         &mut self,
         receiver_id: AccountId,
         token_ids: Vec<TokenId>,
-        amounts: Vec<Balance>,
+        amounts: Vec<U128>,
         approval_ids: Vec<Option<u64>>,
         msg: String,
     ) -> PromiseOrValue<bool>;

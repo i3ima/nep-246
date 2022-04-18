@@ -1,4 +1,4 @@
-use crate::multi_token::core::{MultiTokenCore, MultiTokenResolver};
+use crate::multi_token::core::{ApprovalId, MultiTokenCore, MultiTokenResolver};
 use crate::multi_token::events::{MtBurn, MtMint, MtTransfer};
 use crate::multi_token::metadata::TokenMetadata;
 use crate::multi_token::token::{Approval, Token, TokenId};
@@ -23,8 +23,9 @@ trait MtResolver {
         &mut self,
         sender_id: AccountId,
         receiver: AccountId,
-        token_id: TokenId,
-        approvals: Option<HashMap<AccountId, Approval>>,
+        token_ids: Vec<TokenId>,
+        amounts: Vec<U128>,
+        approvals: Option<Vec<(AccountId, ApprovalId, U128)>>,
     ) -> Vector<Balance>;
 }
 
@@ -35,7 +36,7 @@ pub trait MultiTokenReceiver {
         sender_id: AccountId,
         previous_owner_id: Vec<AccountId>,
         token_ids: Vec<TokenId>,
-        amounts: Vec<Balance>,
+        amounts: Vec<U128>,
         msg: String,
     ) -> PromiseOrValue<Balance>;
 }
@@ -72,6 +73,9 @@ pub struct MultiToken {
 
     /// All approvals of user
     pub approvals_by_id: Option<LookupMap<TokenId, HashMap<AccountId, Approval>>>,
+
+    /// Number of approvals for [Token]. Used for limiting maximum number of approvals
+    pub approvals_number_by_id: Option<LookupMap<TokenId, usize>>,
 
     /// Next id of approval
     pub next_approval_id_by_id: Option<LookupMap<TokenId, u64>>,
@@ -110,14 +114,15 @@ impl MultiToken {
             S: IntoStorageKey,
             T: IntoStorageKey,
     {
-        let (approvals_by_id, next_approval_id_by_id) = if let Some(prefix) = approval_prefix {
+        let (approvals_by_id, next_approval_id_by_id, approvals_number_by_id) = if let Some(prefix) = approval_prefix {
             let prefix: Vec<u8> = prefix.into_storage_key();
             (
                 Some(LookupMap::new(prefix.clone())),
-                Some(LookupMap::new([prefix, "n".into()].concat())),
+                Some(LookupMap::new([prefix.clone(), "n".into()].concat())),
+                Some(LookupMap::new(prefix))
             )
         } else {
-            (None, None)
+            (None, None, None)
         };
 
         Self {
@@ -129,6 +134,7 @@ impl MultiToken {
             tokens_per_owner: enumeration_prefix.map(LookupMap::new),
             balances_per_token: UnorderedMap::new(StorageKey::Balances),
             approvals_by_id,
+            approvals_number_by_id,
             next_approval_id_by_id,
             next_token_id: 0,
         }
@@ -269,12 +275,12 @@ impl MultiToken {
         token_ids: &Vec<TokenId>,
         approval_ids: Vec<Option<u64>>,
         amounts: Vec<Balance>,
-    ) -> (AccountId, Option<HashMap<AccountId, Approval>>) {
-        token_ids.iter().enumerate().map(|token, idx| {
+    ) -> Vec<(AccountId, Option<HashMap<AccountId, Approval>>)> {
+        token_ids.into_iter().enumerate().map(|(idx, token)| {
             let amount: Balance = amounts[idx];
             let approval = approval_ids[idx];
             self.internal_transfer(sender_id, receiver_id, token, approval, amount)
-        })
+        }).collect()
     }
 
     pub fn internal_register_account(&mut self, token_id: &TokenId, account_id: &AccountId) {
@@ -474,11 +480,13 @@ impl MultiTokenCore for MultiToken {
         let (old_owner, old_approvals) =
             self.internal_transfer(&sender_id, &receiver_id, &token_id, approval_id, amount);
 
+        // TODO: Add approvals list creation
+
         ext_receiver::mt_on_transfer(
             sender_id,
             vec![old_owner.clone()],
             vec![token_id.clone()],
-            vec![amount],
+            vec![amount.into()],
             msg,
             receiver_id.clone(),
             NO_DEPOSIT,
@@ -487,8 +495,9 @@ impl MultiTokenCore for MultiToken {
             .then(ext_self::mt_resolve_transfer(
                 old_owner,
                 receiver_id,
-                token_id,
-                old_approvals,
+                vec![token_id],
+                vec![amount.into()],
+                None,
                 env::current_account_id(),
                 NO_DEPOSIT,
                 GAS_FOR_RESOLVE_TRANSFER,
@@ -496,7 +505,7 @@ impl MultiTokenCore for MultiToken {
             .into()
     }
 
-    fn mt_batch_transfer_call(&mut self, receiver_id: AccountId, token_ids: Vec<TokenId>, amounts: Vec<Balance>, approval_ids: Vec<Option<u64>>, msg: String) -> PromiseOrValue<bool> {
+    fn mt_batch_transfer_call(&mut self, receiver_id: AccountId, token_ids: Vec<TokenId>, amounts: Vec<U128>, approval_ids: Vec<Option<u64>>, msg: String) -> PromiseOrValue<bool> {
         assert_one_yocto();
 
         require!(
@@ -505,24 +514,36 @@ impl MultiTokenCore for MultiToken {
         );
         let sender_id = env::predecessor_account_id();
 
-        let (old_owner, old_approvals) =
-            self.internal_batch_transfer(&sender_id, &receiver_id, &token_ids, approval_ids, amounts.clone());
+        let amounts_to = amounts.iter().map(|a| a.0).collect();
+
+        let tuples =
+            self.internal_batch_transfer(&sender_id, &receiver_id, &token_ids, approval_ids, amounts_to);
+
+        let mut owners = vec![];
+
+        let approvals: Vec<(AccountId, ApprovalId, U128)> = tuples.into_iter()
+            .map(|(owner, approvals)| {
+                owners.push(owner.clone());
+                let approval = approvals.as_ref().and_then(|approvals| approvals.get(&owner)).unwrap();
+                (owner, approval.approval_id, U128::from(approval.amount))
+            }).collect();
 
         ext_receiver::mt_on_transfer(
-            sender_id,
-            old_owner.clone(),
+            sender_id.clone(),
+            owners,
             token_ids.clone(),
-            amounts,
+            amounts.clone(),
             msg,
             receiver_id.clone(),
             NO_DEPOSIT,
             env::prepaid_gas() - GAS_FOR_MT_TRANSFER_CALL,
         )
             .then(ext_self::mt_resolve_transfer(
-                old_owner,
+                sender_id,
                 receiver_id,
                 token_ids,
-                old_approvals,
+                amounts,
+                Some(approvals),
                 env::current_account_id(),
                 NO_DEPOSIT,
                 GAS_FOR_RESOLVE_TRANSFER,
@@ -624,11 +645,15 @@ impl MultiTokenResolver for MultiToken {
         &mut self,
         sender_id: AccountId,
         receiver: AccountId,
-        token_id: TokenId,
-        amount: U128,
-    ) -> U128 {
-        self.internal_resolve_transfer(&sender_id, receiver, token_id, amount)
-            .0
-            .into()
+        token_ids: Vec<TokenId>,
+        amounts: Vec<U128>,
+        approvals: Option<Vec<(AccountId, ApprovalId, U128)>>,
+    ) -> Vec<U128> {
+        token_ids.into_iter()
+            .enumerate()
+            .map(|(idx, token_id)|
+                self.internal_resolve_transfer(&sender_id, receiver.clone(), token_id, amounts[idx]).0.into()
+            )
+            .collect()
     }
 }

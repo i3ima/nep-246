@@ -3,6 +3,7 @@ use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::serde::{Deserialize, Serialize};
 pub use near_sdk::{AccountId, Balance};
 use std::collections::HashMap;
+use crate::multi_token::core::ApprovalId;
 
 /// Type alias for convenience
 pub type TokenId = String;
@@ -11,7 +12,7 @@ pub type TokenId = String;
 #[serde(crate = "near_sdk::serde")]
 pub struct Approval {
     pub amount: u128,
-    pub approval_id: u64,
+    pub approval_id: ApprovalId,
 }
 
 /// Info on individual token

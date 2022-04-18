@@ -1,13 +1,15 @@
 mod approval_impl;
 mod receiver;
 
+use std::collections::HashMap;
 pub use approval_impl::*;
 pub use receiver::*;
 
 use crate::multi_token::token::{Approval, TokenId};
-use near_sdk::{AccountId, Balance, Promise};
-use near_sdk::collections::LookupMap;
+use near_sdk::{AccountId, Promise};
 use near_sdk::json_types::U128;
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::serde::{Deserialize, Serialize};
 
 /// Limit for amount of approvals
 /// See - https://github.com/shipsgold/NEPs/blob/master/specs/Standards/MultiToken/ApprovalManagement.md#why-must-mt_approve-panic-if-mt_revoke_all-would-fail-later
@@ -16,8 +18,8 @@ pub const MAX_APPROVALS_PER_TOKEN: usize = 99;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, BorshDeserialize, BorshSerialize)]
 #[serde(crate = "near_sdk::serde")]
 pub struct TokenApproval {
-    approval_owner_id: String,
-    approved_account_ids: LookupMap<String, Approval>,
+    approval_owner_id: AccountId,
+    approved_account_ids: HashMap<AccountId, Approval>,
 }
 
 /// Trait used in approval management
@@ -54,7 +56,7 @@ pub trait MultiTokenApproval {
         &mut self,
         account_id: AccountId,
         token_ids: Vec<TokenId>,
-        amounts: Vec<Balance>,
+        amounts: Vec<U128>,
         msg: Option<String>,
     ) -> Option<Promise>;
 
@@ -111,7 +113,7 @@ pub trait MultiTokenApproval {
         &self,
         token_ids: Vec<TokenId>,
         approved_account_id: AccountId,
-        amounts: Vec<Balance>,
+        amounts: Vec<U128>,
         approval_ids: Option<Vec<u64>>,
     ) -> bool;
 
@@ -134,5 +136,5 @@ pub trait MultiTokenApproval {
     ///
     /// # Returns:
     /// An array of TokenApproval objects, as described in Approval Management standard, and an empty array if there are no approvals
-    fn mt_token_approvals(&self, token_id: TokenId, from_index: U128, limit: u128) -> TokenApproval;
+    fn mt_token_approvals(&self, token_id: TokenId, from_index: U128, limit: u128) -> Vec<TokenApproval>;
 }

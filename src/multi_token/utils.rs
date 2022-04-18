@@ -52,7 +52,7 @@ impl Display for Entity {
     }
 }
 
-pub fn expect_approval<T>(o: Option<T>, entity: Entity) -> T {
+pub fn expect_extension<T>(o: Option<T>, entity: Entity) -> T {
     o.unwrap_or_else(|| panic!("Approval Management is not supported by {}", entity.to_string()))
 }
 
